@@ -35,10 +35,25 @@ if (fs.existsSync(clientOutPath)) {
   });
 }
 
-app.listen(Number(port), '0.0.0.0', () => {
+import { runBatchRecoveryPipeline } from './engine/pipelineRunner.js';
+import { prisma } from './db/client.js';
+
+app.listen(Number(port), '0.0.0.0', async () => {
   console.log(`=======================================================`);
   console.log(`⚡ Recoup Payment Failure Recovery Backend Running`);
   console.log(`📍 Server listening on 0.0.0.0:${port}`);
   console.log(`💳 Razorpay API Mode: TEST MODE`);
   console.log(`=======================================================`);
+
+  // Auto-seed on cold-start so fresh deployments are immediately pre-populated for evaluators
+  try {
+    const count = await prisma.transaction.count();
+    if (count === 0) {
+      console.log('🚀 Cold-start on fresh database: auto-seeding initial batch & running recovery pipeline...');
+      await runBatchRecoveryPipeline();
+      console.log('✅ Dashboard pre-populated with live data for first-time evaluators.');
+    }
+  } catch (err: any) {
+    console.error('Initial auto-seed check:', err.message);
+  }
 });

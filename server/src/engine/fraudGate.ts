@@ -7,7 +7,21 @@ export interface FraudGateCheckResult {
 }
 
 /**
- * Step 0: Hard Fraud Exclusion Gate
+ * Step 0 (read-only variant): Checks fraud flag WITHOUT writing to the DB.
+ * Used by the batch pipeline which handles all writes itself in one atomic flush.
+ */
+export async function evaluateHardFraudGateCheck(transaction: { transactionId: string; isFlaggedFraud: boolean }): Promise<FraudGateCheckResult> {
+  if (transaction.isFlaggedFraud) {
+    return {
+      isFraudExcluded: true,
+      explanation: `[HARD FRAUD GATE] Transaction flagged for fraud/risk block. Excluded at Step 0 before root-cause or policy engine. Zero contact permitted.`,
+    };
+  }
+  return { isFraudExcluded: false };
+}
+
+/**
+ * Step 0: Hard Fraud Exclusion Gate (write variant — used for single-transaction processing).
  * Runs BEFORE root-cause classification or policy engine evaluation.
  * If isFlaggedFraud === true:
  * - Updates Transaction status = 'FRAUD_EXCLUDED'

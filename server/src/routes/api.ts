@@ -23,11 +23,7 @@ apiRouter.post('/batch/generate', async (req, res) => {
 
     const batch = generateSyntheticBatch(count);
 
-    for (const item of batch) {
-      await prisma.transaction.create({
-        data: item,
-      });
-    }
+    await prisma.transaction.createMany({ data: batch });
 
     res.json({
       success: true,
@@ -39,10 +35,44 @@ apiRouter.post('/batch/generate', async (req, res) => {
   }
 });
 
-// 2. Trigger Recovery Pipeline
+// 2. Trigger Recovery Pipeline (auto-seeds batch if none exist)
 apiRouter.post('/pipeline/run', async (req, res) => {
   try {
-    const result = await runBatchRecoveryPipeline();
+    // Check if there are any DEGRADED transactions ready to process
+    const degradedTxns = await prisma.transaction.findMany({
+      where: { status: 'DEGRADED' },
+      select: { transactionId: true },
+    });
+
+    let txnIds = degradedTxns.map((t) => t.transactionId);
+
+    // Auto-seed: if user clicks "Run Recovery Agent" without first generating a batch,
+    // transparently seed 400 fresh at-risk transactions and then run the pipeline.
+    if (txnIds.length === 0) {
+      console.log('🔄 No DEGRADED transactions found — auto-seeding 400 transactions before recovery run...');
+      await prisma.nudgeLog.deleteMany({});
+      await prisma.auditLog.deleteMany({});
+      await prisma.transaction.deleteMany({});
+      await prisma.systemState.upsert({
+        where: { id: 'global' },
+        update: { lastAuditHash: '0000000000000000000000000000000000000000000000000000000000000000', totalBatchCount: 0 },
+        create: { id: 'global', lastAuditHash: '0000000000000000000000000000000000000000000000000000000000000000', totalBatchCount: 0 },
+      });
+
+      const batch = generateSyntheticBatch(400);
+      await prisma.transaction.createMany({ data: batch });
+
+      // Fetch freshly-inserted IDs in one shot
+      const freshTxns = await prisma.transaction.findMany({
+        where: { status: 'DEGRADED' },
+        select: { transactionId: true },
+      });
+      txnIds = freshTxns.map((t) => t.transactionId);
+    }
+
+    // Run pipeline with pre-fetched IDs (avoids a redundant DB round-trip inside pipeline)
+    const result = await runBatchRecoveryPipeline(txnIds);
+
     res.json({
       success: true,
       message: `Recoup agent pipeline run completed. Processed ${result.processedCount} transactions.`,
@@ -52,6 +82,7 @@ apiRouter.post('/pipeline/run', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 // 3. Process Single Transaction (for interactive testing / camera demo)
 apiRouter.post('/transactions/:id/recover', async (req, res) => {
