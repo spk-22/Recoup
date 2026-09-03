@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "build": "prisma db push && prisma generate",
+    "build": "prisma generate && prisma db push",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "test:razorpay": "tsx src/scripts/testRazorpayKeys.ts",

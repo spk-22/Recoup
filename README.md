@@ -122,10 +122,26 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser!
 
 ---
 
-## 6. Operating the Dashboard
+## 6. Cloud Deployment (1 Single Link for Frontend & Backend)
+
+Recoup supports **Unified Single-Service Deployment** where the Express backend natively serves the compiled Next.js dashboard and the recovery API on a **single port and domain** (zero CORS, zero multi-service config).
+
+### Deploy to Render in 3 Steps:
+1. Go to **[render.com](https://render.com)** → Click **New +** → **Web Service**.
+2. Select your repository: `spk-22/Recoup`.
+3. Configure:
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+4. *(Optional)* Add Environment Variables for Razorpay / Gemini if desired.
+5. Click **Deploy Web Service** — Render gives you a single public link (`https://recoup.onrender.com`) that hosts both the Next.js interactive UI and the full recovery API!
+
+---
+
+## 7. Operating the Dashboard
 
 1. **Click "Generate Batch (400 Txns)"**: Ingests 400 realistic payment failures with ground truth labels.
 2. **Click "Run Recovery Agent"**: Executes the full agent pipeline and updates metrics, charts, and audit drawers live.
 3. **Click "Verify Hash Chain"**: Cryptographically verifies the append-only SHA-256 audit trail.
 4. **Click any row**: Inspects the complete decision chain, policy rule fired, Razorpay API response, and machine/human explanation.
 5. **Click "Honest Exceptions"**: Views unresolvable failures and the deliberately injected camera failure test (`txn_injected_api_fail`).
+

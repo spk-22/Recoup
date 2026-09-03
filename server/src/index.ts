@@ -16,8 +16,24 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'Recoup Express Backend', mode: 'Razorpay Test Mode' });
 });
 
+import path from 'path';
+import fs from 'fs';
+
 // API Routes
 app.use('/api', apiRouter);
+
+// Serve Next.js static client export if present (unified single-service deployment)
+const clientOutPath = path.resolve(__dirname, '../../client/out');
+if (fs.existsSync(clientOutPath)) {
+  console.log(`📦 Serving static client build from: ${clientOutPath}`);
+  app.use(express.static(clientOutPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+      return next();
+    }
+    res.sendFile(path.join(clientOutPath, 'index.html'));
+  });
+}
 
 app.listen(port, () => {
   console.log(`=======================================================`);

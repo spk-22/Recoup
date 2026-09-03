@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "npm run build --prefix client && npm run build --prefix server",
+    "start": "npm start --prefix server",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
-    "build": "npm run build --prefix server && npm run build --prefix client",
     "test:pipeline": "cd server && npm run test:pipeline",
     "test:razorpay": "cd server && npm run test:razorpay"
   }
