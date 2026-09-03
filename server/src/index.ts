@@ -35,10 +35,10 @@ if (fs.existsSync(clientOutPath)) {
   });
 }
 
-app.listen(port, () => {
+app.listen(Number(port), '0.0.0.0', () => {
   console.log(`=======================================================`);
   console.log(`⚡ Recoup Payment Failure Recovery Backend Running`);
-  console.log(`📍 Server URL: http://localhost:${port}`);
+  console.log(`📍 Server listening on 0.0.0.0:${port}`);
   console.log(`💳 Razorpay API Mode: TEST MODE`);
   console.log(`=======================================================`);
 });
