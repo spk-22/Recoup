@@ -1,11 +1,5 @@
 # Recoup — Explainable Payment-Failure Recovery Agent
 
-[![Razorpay AI Buildathon](https://img.shields.io/badge/Razorpay_AI_Buildathon-Track_03:_AI_Revenue_Recovery-blue?style=for-the-badge&logo=razorpay)](https://razorpay.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge)](LICENSE)
-[![Next.js 14](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Prisma SQLite](https://img.shields.io/badge/Prisma_SQLite-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io)
-
 **Recoup** is an autonomous, explainable payment-failure recovery agent built for Razorpay checkout failures. It ingests degraded payment attempt events, enforces a hard fraud exclusion gate, classifies root causes, executes bounded recovery actions using Razorpay test-mode APIs, simulates customer response completion for payment link nudges, and records a cryptographically hash-chained append-only audit trail for every action and exception.
 
 ---
@@ -155,3 +149,8 @@ Recoup supports **Unified Single-Service Deployment** where the Express backend 
 4. **Click any row**: Inspects the complete decision chain, policy rule fired, Razorpay API response, and machine/human explanation.
 5. **Click "Honest Exceptions"**: Views unresolvable failures and the deliberately injected camera failure test (`txn_injected_api_fail`).
 
+[![Razorpay AI Buildathon](https://img.shields.io/badge/Razorpay_AI_Buildathon-Track_03:_AI_Revenue_Recovery-blue?style=for-the-badge&logo=razorpay)](https://razorpay.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge)](LICENSE)
+[![Next.js 14](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Prisma SQLite](https://img.shields.io/badge/Prisma_SQLite-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io)
