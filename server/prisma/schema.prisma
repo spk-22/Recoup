@@ -1,0 +1,78 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Transaction {
+  id                      String     @id @default(cuid())
+  transactionId           String     @unique
+  orderId                 String
+  amountInr               Float
+  customerId              String
+  customerName            String
+  customerEmail           String
+  customerPhone           String
+  paymentMethod           String     // card, upi, netbanking
+  attemptTimestamp        DateTime
+  errorCode               String     // BAD_REQUEST_ERROR, GATEWAY_ERROR, SERVER_ERROR
+  errorReason             String     // insufficient_funds, bank_timeout, card_declined_by_issuer, otp_failed, user_cancelled, risk_blocked, network_drop
+  groundTruthRecoverable  Boolean
+  customerContactChannel  String     // sms, whatsapp, email
+  isFlaggedFraud          Boolean    @default(false)
+  status                  String     @default("DEGRADED") // DEGRADED, RECOVERED, PENDING_NUDGE, EXCEPTION, FRAUD_EXCLUDED
+  attemptsCount           Int        @default(0)
+  lastAttemptAt           DateTime?
+  recoveredAmountInr      Float      @default(0)
+  razorpayOrderId         String?
+  razorpayPaymentLinkId   String?
+  razorpayPaymentLinkUrl  String?
+  auditLogs               AuditLog[]
+  nudges                  NudgeLog[]
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+}
+
+model AuditLog {
+  id                  String      @id @default(cuid())
+  sequenceNumber      Int         @default(0)
+  transactionId       String
+  transaction         Transaction @relation(fields: [transactionId], references: [transactionId], onDelete: Cascade)
+  timestamp           DateTime    @default(now())
+  detectedSignal      String
+  rootCause           String
+  classifierSource    String      // deterministic_rule | llm_fallback | fraud_gate
+  confidence          Float
+  policyRuleFired     String
+  actionTaken         String      // retry_payment | send_payment_link | schedule_delayed_nudge | no_action_fraud_excluded | write_off_exception
+  apiCall             String?
+  apiResponseStatus   String?
+  outcome             String      // RECOVERED | PENDING | EXCEPTION | FRAUD_EXCLUDED
+  amountRecoveredInr  Float       @default(0)
+  explanation         String
+  previousHash        String
+  hash                String
+  metadata            String?     // JSON metadata string
+}
+
+model NudgeLog {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [transactionId], onDelete: Cascade)
+  channel       String
+  recipient     String
+  messageBody   String
+  scheduledFor  DateTime
+  sentAt        DateTime?
+  status        String      // SENT | SCHEDULED | BLOCKED_DNC
+}
+
+model SystemState {
+  id               String   @id @default("global")
+  lastAuditHash    String   @default("0000000000000000000000000000000000000000000000000000000000000000")
+  totalBatchCount  Int      @default(0)
+  updatedAt        DateTime @updatedAt
+}

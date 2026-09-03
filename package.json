@@ -1,0 +1,12 @@
+{
+  "name": "recoup",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "test:pipeline": "cd server && npm run test:pipeline",
+    "test:razorpay": "cd server && npm run test:razorpay"
+  }
+}
