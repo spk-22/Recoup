@@ -40,12 +40,7 @@ $$\text{Recall (Sensitivity)} = \frac{TP}{TP + FN} = \frac{223}{223 + 19} = 92.1
 
 $$\text{F1-Score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} = 95.10\%$$
 
-<<<<<<< HEAD
 $$\text{Specificity (Fraud and Risk Exclusion)} = \frac{TN}{TN + FP} = \frac{154}{154 + 4} = 97.47\%$$
-
-=======
-$$\text{Specificity (Fraud & Risk Exclusion)} = \frac{TN}{TN + FP} = \frac{154}{154 + 4} = 97.47\%$$
->>>>>>> 54c6ca55f0725c08fa986d34adba0fcae19c59ba
 ---
 
 ## 3. Root-Cause Recovery Breakdown
