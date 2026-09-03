@@ -43,26 +43,23 @@ export default function DashboardPage() {
     loadData();
   }, [statusFilter, searchQuery]);
 
-  const tabs: { id: Tab; label: string; num: string; subtitle: string; icon: any }[] = [
+  const tabs: { id: Tab; label: string; tag: string; icon: any }[] = [
     {
       id: 'overview',
-      num: '01',
       label: 'Overview',
-      subtitle: 'Executive Summary & Insights',
+      tag: 'Executive Summary',
       icon: LayoutDashboard,
     },
     {
       id: 'analytics',
-      num: '02',
       label: 'Analytics & Simulation',
-      subtitle: 'Payment Channels & What-If Modeler',
+      tag: 'What-If Modeler & Channels',
       icon: BarChart2,
     },
     {
       id: 'audit',
-      num: '03',
       label: 'Audit Trail',
-      subtitle: 'Cryptographic SHA-256 Ledger',
+      tag: 'SHA-256 Ledger',
       icon: Lock,
     },
   ];
@@ -77,19 +74,31 @@ export default function DashboardPage() {
         onDismissAudit={() => setAuditVerifyResult(null)}
       />
 
-      {/* Main Tab Navigation — Prominent Module Selectors */}
-      <div className="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-20 py-3 shadow-xl">
+      {/* Main Tab Navigation — Prominent Interactive Button Bar */}
+      <div className="border-b border-slate-800 bg-slate-950/95 backdrop-blur sticky top-0 z-20 py-3.5 shadow-2xl">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-1.5">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span>Platform Modules & Views</span>
-            </span>
-            <span className="text-[11px] font-medium text-slate-500">
-              Click tab to switch view
-            </span>
+          
+          {/* Attention-Attracting Graphic Callout */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 bg-gradient-to-r from-cyan-950/50 via-slate-900 to-blue-950/40 border border-cyan-800/40 rounded-xl px-4 py-2">
+            <div className="flex items-center space-x-2.5">
+              <span className="relative flex h-3 w-3 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+              </span>
+              <span className="text-xs font-bold text-cyan-300 tracking-wide uppercase flex items-center space-x-1">
+                <span>Interactive Navigation:</span>
+                <span className="text-slate-300 font-normal normal-case">Click a button below to switch dashboard view</span>
+              </span>
+            </div>
+            <div className="hidden md:flex items-center space-x-1.5 text-[11px] text-slate-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Currently Viewing:</span>
+              <span className="text-cyan-300 font-bold uppercase">{activeTab === 'overview' ? 'Overview' : activeTab === 'analytics' ? 'Analytics & Simulation' : 'Cryptographic Audit Trail'}</span>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+          {/* Actual Prominent Action Buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-1.5 bg-slate-900/90 rounded-2xl border-2 border-slate-800">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -97,47 +106,43 @@ export default function DashboardPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center justify-between p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  type="button"
+                  className={`group relative flex items-center justify-between px-5 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${
                     isActive
-                      ? 'bg-gradient-to-r from-cyan-950/90 to-blue-950/90 border-cyan-400 text-white shadow-lg shadow-cyan-500/15 ring-1 ring-cyan-400/50'
-                      : 'bg-slate-900/80 border-slate-700/70 text-slate-300 hover:text-white hover:bg-slate-800/80 hover:border-slate-600'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xl shadow-cyan-500/30 border-2 border-cyan-300 ring-2 ring-cyan-400/40 scale-[1.01]'
+                      : 'bg-slate-950/70 text-slate-300 hover:text-white hover:bg-slate-800/90 border-2 border-slate-700/80 hover:border-cyan-400/80 shadow-md hover:shadow-cyan-500/10'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
                     <div
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
                         isActive
-                          ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/30'
-                          : 'bg-slate-800 text-slate-400'
+                          ? 'bg-white/20 text-white'
+                          : 'bg-slate-800 text-cyan-400 group-hover:bg-cyan-500/20 group-hover:text-cyan-300'
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-bold tracking-tight">
-                          {tab.label}
-                        </span>
-                        {isActive && (
-                          <span className="px-1.5 py-0.2 text-[9px] font-bold rounded bg-cyan-400/20 text-cyan-300 border border-cyan-400/40">
-                            ACTIVE
-                          </span>
-                        )}
+                    <div className="text-left">
+                      <div className="text-sm font-extrabold tracking-tight leading-none">{tab.label}</div>
+                      <div className={`text-[10px] font-medium mt-1 ${isActive ? 'text-cyan-100' : 'text-slate-400 group-hover:text-slate-300'}`}>
+                        {tab.tag}
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        {tab.subtitle}
-                      </p>
                     </div>
                   </div>
-                  <div
-                    className={`text-xs font-mono font-bold px-2 py-1 rounded ${
-                      isActive
-                        ? 'text-cyan-300 bg-cyan-950 border border-cyan-800'
-                        : 'text-slate-500 bg-slate-800/50'
-                    }`}
-                  >
-                    {tab.num}
-                  </div>
+
+                  {/* Right side click status/indicator */}
+                  {isActive ? (
+                    <span className="flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/25 text-white shadow-inner border border-white/30">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-300"></span>
+                      <span>ACTIVE</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center space-x-1 text-[11px] font-semibold text-slate-400 group-hover:text-cyan-300 transition-colors">
+                      <span>Select</span>
+                      <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+                    </span>
+                  )}
                 </button>
               );
             })}
