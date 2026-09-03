@@ -20,13 +20,14 @@
                                 └──────────────────────┘       └──────────┬───────────┘
                                                                           │
                                                                           ▼
- ┌──────────────────────┐       ┌──────────────────────┐       ┌──────────────────────┐
+ ┌──────────────────────┐       ┌──────────────────────────┐       ┌──────────────────────┐
  │ Next.js Dashboard    │ ◄───  │ Serialized Cryptographic │ ◄───  │ Policy Engine        │
- │ Metrics, Audit Trail,│       │ Hash Chain Audit DB  │       │ (Retry Caps, DNC,    │
- │ Exceptions Drawer    │       │ (In-Memory Mutex)    │       │  IST 9am-8pm Window) │
- └──────────────────────┘       └──────────────────────┘       └──────────┬───────────┘
-                                                                          │
-                                                                          ▼
+ │ Metrics, Audit Trail,│       │ Hash Chain Audit DB      │       │ (Retry Caps, DNC,    │
+ │ Exceptions Drawer    │       │ (In-Memory Mutex)        │       │  IST 9am-8pm Window) │
+ └──────────────────────┘       └──────────────────────────┘       └──────────┬───────────┘
+                                                                              │
+                                                                              |
+                                                                              ▼
  ┌──────────────────────┐                                      ┌──────────────────────┐
  │ Customer Response    │ ◄─────────────────────────────────── │ Razorpay Execution   │
  │ Simulator (Nudges)   │                                      │ (Orders & Payment    │
