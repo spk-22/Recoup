@@ -10,6 +10,13 @@
 
 ---
 
+> [!TIP]
+> ### 🌐 Live Production Deployment
+> **Try the fully functional agent and dashboard:**  
+> **👉 [Recoup — Explainable Payment-Failure Recovery Agent](https://recoup-production-5da8.up.railway.app/)**  
+> *(Pre-seeded with 400 transactions, live Razorpay test-mode integration, and verified cryptographic audit trail)*
+---
+
 ## 1. System Architecture
 
 ```
