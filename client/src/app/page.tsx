@@ -74,11 +74,11 @@ export default function DashboardPage() {
                   className={`flex items-center justify-center space-x-2.5 py-3 px-4 rounded-lg text-xs md:text-sm transition-all duration-150 cursor-pointer select-none active:scale-[0.99] ${
                     isActive
                       ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-lg shadow-cyan-500/25 border border-cyan-400/40'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/80 border border-transparent font-medium'
+                      : 'bg-slate-800/80 hover:bg-slate-700/90 text-slate-100 hover:text-white font-semibold border border-slate-700 hover:border-cyan-500/50 shadow-sm'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span>{tab.label}</span>
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-cyan-400'}`} />
+                  <span className={isActive ? 'text-white' : 'text-slate-100 font-semibold'}>{tab.label}</span>
                 </button>
               );
             })}
