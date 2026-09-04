@@ -1,9 +1,4 @@
 # Recoup — Explainable Payment-Failure Recovery Agent
-
-**Recoup** is an autonomous, explainable payment-failure recovery agent built for Razorpay checkout failures. It ingests degraded payment attempt events, enforces a hard fraud exclusion gate, classifies root causes, executes bounded recovery actions using Razorpay test-mode APIs, simulates customer response completion for payment link nudges, and records a cryptographically hash-chained append-only audit trail for every action and exception.
-
----
-
 > [!TIP]
 > ### 🌐 Live Production Deployment
 >
@@ -13,6 +8,11 @@
 >
 > *(Pre-seeded with 400 transactions, live Razorpay test-mode integration, and verified cryptographic audit trail)*
 ---
+**Recoup** is an autonomous, explainable payment-failure recovery agent built for Razorpay checkout failures. It ingests degraded payment attempt events, enforces a hard fraud exclusion gate, classifies root causes, executes bounded recovery actions using Razorpay test-mode APIs, simulates customer response completion for payment link nudges, and records a cryptographically hash-chained append-only audit trail for every action and exception.
+
+---
+
+
 
 ## 1. System Architecture
 
