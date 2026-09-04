@@ -1,5 +1,4 @@
 # Recoup — Explainable Payment-Failure Recovery Agent
-> [!TIP]
 > ### 🌐 Live Production Deployment
 >
 > **Try the fully functional agent and dashboard:**  
