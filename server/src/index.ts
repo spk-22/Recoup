@@ -23,8 +23,14 @@ import fs from 'fs';
 app.use('/api', apiRouter);
 
 // Serve Next.js static client export if present (unified single-service deployment)
-const clientOutPath = path.resolve(__dirname, '../../client/out');
-if (fs.existsSync(clientOutPath)) {
+const candidateClientPaths = [
+  path.resolve(process.cwd(), 'client/out'),
+  path.resolve(process.cwd(), '../client/out'),
+  path.resolve(__dirname, '../../client/out'),
+  path.resolve(__dirname, '../client/out'),
+];
+const clientOutPath = candidateClientPaths.find((p) => fs.existsSync(p));
+if (clientOutPath) {
   console.log(`📦 Serving static client build from: ${clientOutPath}`);
   app.use(express.static(clientOutPath));
   app.get('*', (req, res, next) => {

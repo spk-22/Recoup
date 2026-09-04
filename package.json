@@ -10,9 +10,9 @@
     "postinstall": "npm --prefix client install --include=dev && npm --prefix server install --include=dev",
     "build": "npm run build --prefix client && npm run build --prefix server",
     "start": "npm start --prefix server",
-    "dev:server": "cd server && npm run dev",
-    "dev:client": "cd client && npm run dev",
-    "test:pipeline": "cd server && npm run test:pipeline",
-    "test:razorpay": "cd server && npm run test:razorpay"
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "test:pipeline": "npm run test:pipeline --prefix server",
+    "test:razorpay": "npm run test:razorpay --prefix server"
   }
 }

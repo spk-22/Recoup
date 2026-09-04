@@ -89,35 +89,36 @@ Recoup uses a **hybrid AI approach**:
 git clone https://github.com/spk-22/Recoup.git
 cd Recoup
 
-# Install backend dependencies
-cd server
+# Option A: Install all dependencies in 1 command (Workspaces)
 npm install
 
-# Install frontend dependencies
+# Option B: Install manually in each workspace
+cd server
+npm install
 cd ../client
 npm install
 ```
 
 ### 2. Initialize Database & Run Test Suite
 ```bash
-# Push Prisma SQLite Schema
-cd ../server
+# Push Prisma SQLite Schema (creates local dev.db and generates Prisma Client)
+cd server
 npx prisma db push
 
-# Run End-to-End Test Suite
+# Run End-to-End Pipeline & Cryptographic Verification Test
 npm run test:pipeline
 ```
 
 ### 3. Launch Development Servers
 Open two terminal windows:
 
-**Terminal 1 (Backend - Port 4000):**
+**Terminal 1 (Backend API - Port 4000):**
 ```bash
 cd server
 npm run dev
 ```
 
-**Terminal 2 (Frontend - Port 3000):**
+**Terminal 2 (Frontend Dashboard - Port 3000):**
 ```bash
 cd client
 npm run dev
@@ -129,24 +130,42 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser!
 
 ## 6. Cloud Deployment (1 Single Link for Frontend & Backend)
 
-Recoup supports **Unified Single-Service Deployment** where the Express backend natively serves the compiled Next.js dashboard and the recovery API on a **single port and domain** (zero CORS, zero multi-service config).
+Recoup is architected for **Unified Single-Service Deployment**: the Express backend serves both the compiled Next.js interactive UI and the recovery REST API on a **single port and domain** (eliminating CORS issues, cookie problems, and multi-service billing).
 
-### Deploy to Render in 3 Steps:
-1. Go to **[render.com](https://render.com)** → Click **New +** → **Web Service**.
-2. Select your repository: `spk-22/Recoup`.
-3. Configure:
+### Deploying to Railway (Recommended)
+
+1. Log in to **[railway.app](https://railway.app/)**.
+2. Click **New Project** → **Deploy from GitHub repo**.
+3. Select your repository: `spk-22/Recoup`.
+4. In **Settings** → **Build & Deploy**:
    - **Build Command**: `npm install && npm run build`
    - **Start Command**: `npm start`
-4. *(Optional)* Add Environment Variables for Razorpay / Gemini if desired.
-5. Click **Deploy Web Service** — Render gives you a single public link (`https://recoup.onrender.com`) that hosts both the Next.js interactive UI and the full recovery API!
+5. In **Variables** (Environment Variables), configure:
+   - `DATABASE_URL`: `file:./dev.db`
+   - `RAZORPAY_KEY_ID`: `rzp_test_recoup2026` *(or your own Razorpay test key)*
+   - `RAZORPAY_KEY_SECRET`: `recoup_secret_key_2026` *(or your test secret)*
+   - `GEMINI_API_KEY`: *(optional Gemini key for dynamic AI classification & nudge copy)*
+   *(Note: Railway automatically supplies and routes the `PORT` environment variable)*
+6. In **Settings** → **Networking**, click **Generate Domain**.
+7. Railway will build the Next.js bundle, initialize SQLite, and launch the server. On cold-start, the server automatically populates 400 transactions so the dashboard is immediately live.
+
+### Deploying to Render
+
+1. Log in to **[render.com](https://render.com)** → Click **New +** → **Web Service**.
+2. Connect your GitHub repository: `spk-22/Recoup`.
+3. Configure settings:
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+4. Add environment variables under **Environment** (same as above).
+5. Click **Deploy Web Service** — Render assigns a single public HTTPS URL hosting both the client and API.
 
 ---
 
 ## 7. Operating the Dashboard
 
-1. **Click "Generate Batch (400 Txns)"**: Ingests 400 realistic payment failures with ground truth labels.
-2. **Click "Run Recovery Agent"**: Executes the full agent pipeline and updates metrics, charts, and audit drawers live.
-3. **Click "Verify Hash Chain"**: Cryptographically verifies the append-only SHA-256 audit trail.
+1. **Click "Generate Batch (400 Txns)"**: Ingests 400 realistic payment failures with ground truth labels and root causes.
+2. **Click "Run Recovery Agent"**: Executes the 5-stage pipeline (Fraud Gate → Classifier → Policy Matrix → Razorpay APIs → Customer Simulator) with real-time countdown, stage breadcrumbs, and live timer.
+3. **Click "Verify Hash Chain"**: Cryptographically verifies the append-only SHA-256 audit trail from Genesis to the latest block.
 4. **Click any row**: Inspects the complete decision chain, policy rule fired, Razorpay API response, and machine/human explanation.
 5. **Click "Honest Exceptions"**: Views unresolvable failures and the deliberately injected camera failure test (`txn_injected_api_fail`).
 

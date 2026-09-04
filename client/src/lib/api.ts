@@ -1,6 +1,22 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== 'undefined' ? '/api' : 'http://localhost:4000/api');
+export function getApiBase(): string {
+  if (typeof window !== 'undefined') {
+    // When deployed on cloud hosting (Railway, Render, Vercel, or custom domains), use relative path
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return '/api';
+    }
+    // When running Next.js dev server locally on port 3000, route API calls to Express backend on port 4000
+    if (window.location.port === '3000') {
+      return `${window.location.protocol}//${window.location.hostname}:4000/api`;
+    }
+    return '/api';
+  }
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, '');
+  }
+  return 'http://localhost:4000/api';
+}
+
+export const API_BASE = getApiBase();
 
 export interface MetricsData {
   totalTransactions: number;
@@ -103,22 +119,34 @@ export interface AuditLogItem {
 }
 
 export async function fetchMetrics(): Promise<MetricsData> {
-  const res = await fetch(`${API_BASE}/metrics`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to fetch metrics');
+  const base = getApiBase();
+  const res = await fetch(`${base}/metrics`, { cache: 'no-store' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to fetch metrics (HTTP ${res.status})`);
+  }
   return res.json();
 }
 
 export async function fetchTransactions(status: string = 'ALL', search: string = ''): Promise<TransactionItem[]> {
+  const base = getApiBase();
   const params = new URLSearchParams({ status, search });
-  const res = await fetch(`${API_BASE}/transactions?${params}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to fetch transactions');
+  const res = await fetch(`${base}/transactions?${params}`, { cache: 'no-store' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to fetch transactions (HTTP ${res.status})`);
+  }
   const data = await res.json();
   return data.transactions;
 }
 
 export async function fetchTransactionDetail(transactionId: string): Promise<TransactionItem> {
-  const res = await fetch(`${API_BASE}/transactions/${transactionId}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to fetch transaction detail');
+  const base = getApiBase();
+  const res = await fetch(`${base}/transactions/${transactionId}`, { cache: 'no-store' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to fetch transaction detail (HTTP ${res.status})`);
+  }
   const data = await res.json();
   return data.transaction;
 }
@@ -130,40 +158,60 @@ export async function verifyAuditHashChain(): Promise<{
   failedSequenceNumber?: number;
   message: string;
 }> {
-  const res = await fetch(`${API_BASE}/audit/verify`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to verify audit hash chain');
+  const base = getApiBase();
+  const res = await fetch(`${base}/audit/verify`, { cache: 'no-store' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to verify audit hash chain (HTTP ${res.status})`);
+  }
   return res.json();
 }
 
 export async function fetchExceptions(): Promise<TransactionItem[]> {
-  const res = await fetch(`${API_BASE}/exceptions`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to fetch exceptions');
+  const base = getApiBase();
+  const res = await fetch(`${base}/exceptions`, { cache: 'no-store' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to fetch exceptions (HTTP ${res.status})`);
+  }
   const data = await res.json();
   return data.exceptions;
 }
 
 export async function generateSyntheticBatch(count: number = 400) {
-  const res = await fetch(`${API_BASE}/batch/generate`, {
+  const base = getApiBase();
+  const res = await fetch(`${base}/batch/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ count }),
   });
-  if (!res.ok) throw new Error('Failed to generate batch');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to generate batch (HTTP ${res.status})`);
+  }
   return res.json();
 }
 
 export async function runRecoveryPipeline() {
-  const res = await fetch(`${API_BASE}/pipeline/run`, {
+  const base = getApiBase();
+  const res = await fetch(`${base}/pipeline/run`, {
     method: 'POST',
   });
-  if (!res.ok) throw new Error('Failed to run recovery pipeline');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to run recovery pipeline (HTTP ${res.status})`);
+  }
   return res.json();
 }
 
 export async function resetSystem() {
-  const res = await fetch(`${API_BASE}/reset`, {
+  const base = getApiBase();
+  const res = await fetch(`${base}/reset`, {
     method: 'POST',
   });
-  if (!res.ok) throw new Error('Failed to reset system');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || err.message || `Failed to reset system (HTTP ${res.status})`);
+  }
   return res.json();
 }

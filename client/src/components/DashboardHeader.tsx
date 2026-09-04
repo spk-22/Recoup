@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Play, RefreshCw, ShieldCheck, Database, Zap, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, RefreshCw, ShieldCheck, Database, Zap, AlertTriangle, Clock, CheckCircle2, Loader2 } from 'lucide-react';
 import { generateSyntheticBatch, runRecoveryPipeline, resetSystem, verifyAuditHashChain } from '../lib/api';
 
 interface DashboardHeaderProps {
@@ -9,6 +9,16 @@ interface DashboardHeaderProps {
   onAuditVerifyResult: (result: any) => void;
   auditVerifyResult: any;
   onDismissAudit: () => void;
+}
+
+interface PipelineProgressState {
+  isActive: boolean;
+  actionTitle: string;
+  estimatedSeconds: number;
+  elapsedSeconds: number;
+  remainingSeconds: number;
+  currentStageIndex: number;
+  stages: string[];
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -20,17 +30,79 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<'info' | 'success' | 'error'>('info');
+  const [progress, setProgress] = useState<PipelineProgressState | null>(null);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  const startProgress = (title: string, estimatedSeconds: number, stages: string[]) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    startTimeRef.current = Date.now();
+    setProgress({
+      isActive: true,
+      actionTitle: title,
+      estimatedSeconds,
+      elapsedSeconds: 0,
+      remainingSeconds: estimatedSeconds,
+      currentStageIndex: 0,
+      stages,
+    });
+
+    timerRef.current = setInterval(() => {
+      const elapsedMs = Date.now() - startTimeRef.current;
+      const elapsedSec = Math.round((elapsedMs / 1000) * 10) / 10;
+      const remainingSec = Math.max(0, Math.ceil(estimatedSeconds - elapsedSec));
+
+      const stageCount = stages.length;
+      const stageDuration = estimatedSeconds / (stageCount || 1);
+      const stageIdx = Math.min(stageCount - 1, Math.floor(elapsedSec / stageDuration));
+
+      setProgress((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          elapsedSeconds: elapsedSec,
+          remainingSeconds: remainingSec,
+          currentStageIndex: stageIdx,
+        };
+      });
+    }, 100);
+  };
+
+  const stopProgress = (): string => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    const totalElapsed = ((Date.now() - startTimeRef.current) / 1000).toFixed(1);
+    setProgress(null);
+    return totalElapsed;
+  };
 
   const handleGenerateBatch = async () => {
     setLoading(true);
     setStatusType('info');
-    setStatusMessage('Generating 400 synthetic at-risk payment transactions...');
+    setStatusMessage(null);
+    const stages = [
+      'Purging existing dataset',
+      'Synthesizing 400 failure profiles',
+      'Writing transactions to database',
+    ];
+    startProgress('Generating Synthetic Failure Batch (400 Txns)', 3, stages);
     try {
       const res = await generateSyntheticBatch(400);
+      const elapsed = stopProgress();
       setStatusType('success');
-      setStatusMessage(`✓ ${res.message}`);
+      setStatusMessage(`✓ ${res.message} (Completed in ${elapsed}s)`);
       onRefresh();
     } catch (err: any) {
+      stopProgress();
       setStatusType('error');
       setStatusMessage(`Error: ${err.message}`);
     } finally {
@@ -41,13 +113,23 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const handleRunPipeline = async () => {
     setLoading(true);
     setStatusType('info');
-    setStatusMessage('Executing Recoup agent pipeline (Fraud Gate → Classifier → Policy Engine → Razorpay APIs → Customer Simulator)...');
+    setStatusMessage(null);
+    const stages = [
+      'Fraud Gate (Step 0 Hard Shield)',
+      'Root-Cause Classifier (Gemini AI + Rules)',
+      'Policy Matrix Engine',
+      'Razorpay APIs (Orders & Links)',
+      'Customer Simulator & Hash Chain',
+    ];
+    startProgress('Executing Recoup Recovery Pipeline', 4, stages);
     try {
       const res = await runRecoveryPipeline();
+      const elapsed = stopProgress();
       setStatusType('success');
-      setStatusMessage(`✓ Pipeline Complete: Recovered ₹${res.result.recoveredAmountTotal.toLocaleString('en-IN')} across ${res.result.recoveredCount} transactions.`);
+      setStatusMessage(`✓ Pipeline Complete: Recovered ₹${res.result.recoveredAmountTotal.toLocaleString('en-IN')} across ${res.result.recoveredCount} transactions (Finished in ${elapsed}s).`);
       onRefresh();
     } catch (err: any) {
+      stopProgress();
       setStatusType('error');
       setStatusMessage(`Error running pipeline: ${err.message}`);
     } finally {
@@ -58,13 +140,21 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const handleVerifyAuditChain = async () => {
     setLoading(true);
     setStatusType('info');
-    setStatusMessage('Traversing cryptographic SHA-256 hash chain...');
+    setStatusMessage(null);
+    const stages = [
+      'Retrieving audit log sequence',
+      'Traversing SHA-256 cryptographic chain',
+      'Verifying tamper-evident integrity',
+    ];
+    startProgress('Traversing SHA-256 Cryptographic Hash Chain', 2, stages);
     try {
       const res = await verifyAuditHashChain();
+      const elapsed = stopProgress();
       onAuditVerifyResult(res);
       setStatusType(res.isValid ? 'success' : 'error');
-      setStatusMessage(res.message);
+      setStatusMessage(`${res.message} (Verified in ${elapsed}s)`);
     } catch (err: any) {
+      stopProgress();
       setStatusType('error');
       setStatusMessage(`Audit verification failed: ${err.message}`);
     } finally {
@@ -163,14 +253,86 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </div>
         </div>
 
-        {/* Status Bar */}
-        {statusMessage && (
-          <div className={`px-3 py-1.5 text-xs border rounded-md flex items-center justify-between ${statusColors[statusType]}`}>
-            <span>{statusMessage}</span>
-            <button onClick={() => setStatusMessage(null)} className="font-bold ml-2 opacity-60 hover:opacity-100">×</button>
+        {/* Live Multi-Stage Countdown & Progress Tracker */}
+        {progress?.isActive && (
+          <div className="border border-cyan-500/40 bg-cyan-950/40 rounded-xl p-3.5 space-y-2.5 shadow-lg shadow-cyan-950/50">
+            {/* Header row: Action title, Countdown pill, and Elapsed timer */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
+                <span className="font-semibold text-white tracking-wide">{progress.actionTitle}</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                  Stage {progress.currentStageIndex + 1} of {progress.stages.length}
+                </span>
+              </div>
+
+              {/* Countdown and Elapsed pill */}
+              <div className="flex items-center space-x-2 text-[11px]">
+                <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-cyan-900/60 border border-cyan-700/60 text-cyan-200 font-mono font-semibold">
+                  <Clock className="w-3.5 h-3.5 text-cyan-300 animate-pulse" />
+                  <span>
+                    {progress.remainingSeconds > 0
+                      ? `Est. ~${progress.remainingSeconds}s remaining`
+                      : 'Finalizing database & hash chain...'}
+                  </span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 font-mono text-[11px]">
+                  Elapsed: {progress.elapsedSeconds.toFixed(1)}s
+                </div>
+              </div>
+            </div>
+
+            {/* Visual Progress Bar */}
+            <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-slate-800">
+              <div
+                className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 h-full rounded-full transition-all duration-300 ease-out shadow-sm shadow-cyan-500/50"
+                style={{
+                  width: `${Math.min(98, Math.max(8, Math.round((progress.elapsedSeconds / progress.estimatedSeconds) * 92)))}%`,
+                }}
+              />
+            </div>
+
+            {/* Pipeline Stage Steps Breadcrumb */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 pt-1 text-[10px]">
+              {progress.stages.map((stage, idx) => {
+                const isPast = idx < progress.currentStageIndex;
+                const isCurrent = idx === progress.currentStageIndex;
+                return (
+                  <div
+                    key={stage}
+                    className={`px-2 py-1 rounded border flex items-center space-x-1.5 transition-all ${
+                      isCurrent
+                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 font-semibold shadow-sm shadow-cyan-500/30 ring-1 ring-cyan-500/40'
+                        : isPast
+                        ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-300/80'
+                        : 'bg-slate-900/50 border-slate-800 text-slate-500'
+                    }`}
+                  >
+                    <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] shrink-0 font-bold bg-slate-800">
+                      {isPast ? '✓' : idx + 1}
+                    </span>
+                    <span className="truncate">{stage}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Completed / Error Status Banner */}
+        {statusMessage && !progress?.isActive && (
+          <div className={`px-3.5 py-2 text-xs border rounded-lg flex items-center justify-between shadow-sm transition-all ${statusColors[statusType]}`}>
+            <div className="flex items-center space-x-2">
+              {statusType === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+              {statusType === 'error' && <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />}
+              {statusType === 'info' && <Clock className="w-4 h-4 text-cyan-400 shrink-0" />}
+              <span className="font-medium">{statusMessage}</span>
+            </div>
+            <button onClick={() => setStatusMessage(null)} className="font-bold ml-2 opacity-60 hover:opacity-100 text-sm">×</button>
           </div>
         )}
       </div>
     </header>
   );
 };
+
